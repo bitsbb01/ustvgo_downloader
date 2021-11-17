@@ -45,9 +45,8 @@ jobs:
 
      
       ### DOWNLOAD REQUIRED DATA ###
-      - name: Get IPTVCat Release
+      - name: Get USTVGO Release
         run: |
-          echo "Command: python3 download.py"
           python3 ./download.py
           
           
