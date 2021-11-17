@@ -1,0 +1,82 @@
+name: ustvgo_ACTION
+
+on:
+  workflow_dispatch:
+  # Run 6 Hours after https://github.com/bitsbb01/iptvcat-scrapper
+  # 12.10 UTC Time, 06.10 Central Time
+  # Due to the yourube scripts running, it now runs every 3 hrs to make sure the youtube m3us are upto date.
+  schedule:
+#    - cron: "10 6 * * *"
+    - cron: "0 0/3 * * *"
+  push:
+    branches:
+    - master
+    - main
+
+jobs:
+
+  m3u8_action:
+    name: ustvgo_action
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Commit files
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          echo $(date) >> last_attempt.txt
+          cat last_attempt.txt
+          ls -ltr
+          git status
+          git add last_attempt.txt
+          git status
+          git commit -m "cron: setting last attempt time stamp" -a
+          git status
+          git push
+
+
+      ### SETUP THE ENVIRONMENT
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+     
+      ### DOWNLOAD REQUIRED DATA ###
+      - name: Get IPTVCat Release
+        run: |
+          echo "Command: python3 download.py"
+          python3 ./download.py
+          
+          
+          
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date '+%Y-%m-%d')"
+
+
+      - name: Config
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+        
+      - name: create workflow artifact #this is created, so if theres an error, you can look back at previous yml
+        uses: actions/upload-artifact@v2
+        with:
+         name: workflow_${{ steps.date.outputs.date }}
+         path: .github/workflows/m3u8_converter.yml
+       
+      - name: Commit All Files
+        uses: zwaldowski/git-commit-action@v1
+        with:
+             commit_message: Updated by Bot - ${{ steps.date.outputs.date }}
+             working_directory: .
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.scrapper_token }}
+          branch: ${{ github.ref }}
+          
