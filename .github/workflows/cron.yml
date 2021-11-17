@@ -46,8 +46,7 @@ jobs:
      
       ### DOWNLOAD REQUIRED DATA ###
       - name: Get USTVGO Release
-        run: |
-          python3 ./download.py
+        run: python3 update.py
           
           
           
